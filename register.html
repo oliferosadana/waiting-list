@@ -33,24 +33,24 @@
 
             <div class="mb-3">
               <label for="name" class="form-label">Nama Lengkap</label>
-              <input type="text" id="name" class="form-control" placeholder="Masukkan nama lengkap">
+              <input type="text" id="name" class="form-control" placeholder="Masukkan nama lengkap" required>
             </div>
 
             <div class="mb-3">
               <label for="nowa" class="form-label">Nomor WhatsApp</label>
-              <input type="tel" id="nowa" class="form-control" placeholder="08xxxxxxxxxx">
+              <input type="tel" id="nowa" class="form-control" placeholder="08xxxxxxxxxx" required>
             </div>
 
-            <div class="mb-4">
+            <!-- <div class="mb-4">
               <label for="reg" class="form-label">Jenis Registrasi</label>
               <select id="reg" class="form-select">
                 <option value="online">Online</option>
                 <option value="offline">Offline</option>
               </select>
-            </div>
+            </div> -->
 
             <div class="d-grid gap-2 mt-4">
-              <button class="btn btn-primary btn-lg" onclick="submitForm()">Kirim Permintaan</button>
+              <button id="submitBtn" class="btn btn-primary btn-lg" onclick="submitForm()">Kirim Permintaan</button>
               <a href="?page=dashboard" class="btn btn-outline-secondary">Masuk ke halaman "Waiting List"</a>
             </div>
           </div>
@@ -60,32 +60,51 @@
 
     <script>
       function submitForm() {
-      const name = document.getElementById("name").value.trim();
-      const nowa = document.getElementById("nowa").value.trim();
-      const reg = document.getElementById("reg").value;
+        const name = document.getElementById("name").value.trim();
+        const nowa = document.getElementById("nowa").value.trim();
+        // const reg = document.getElementById("reg").value;
+        const submitBtn = document.getElementById("submitBtn");
 
-      if (!name || !nowa) {
-        alert("Nama dan No WA wajib diisi!");
-        return;
+        if (!name || !nowa) {
+          alert("Nama dan No WA wajib diisi!");
+          return;
+        }
+
+        // Validasi format WA sederhana
+        if (!/^08\d{8,12}$/.test(nowa)) {
+          alert("Format No WA tidak valid (contoh: 08xxxxxxxxxx)");
+          return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Mengirim...";
+
+        fetch("https://script.google.com/macros/s/AKfycbwnH1OrRCuF5J7DJTJ2e_cdFfKkpiUg2idScTNRsYqu5eshbWB7WrEqXCaMmJNY5GxU/exec", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ action: "register", name, nowa, reg })
+        })
+        .then(res => res.json())
+        .then(res => {
+          if (res.status === "ok") {
+            alert("Registrasi berhasil!");
+            document.getElementById("name").value = "";
+            document.getElementById("nowa").value = "";
+            document.getElementById("reg").value = "online";
+          } else {
+            alert("Gagal: " + (res.message || "Terjadi kesalahan"));
+          }
+        })
+        .catch(err => {
+          alert("Terjadi kesalahan: " + err.message);
+        })
+        .finally(() => {
+          submitBtn.disabled = false;
+          submitBtn.textContent = "Kirim Permintaan";
+        });
       }
-
-      fetch("https://script.google.com/macros/s/AKfycbwnH1OrRCuF5J7DJTJ2e_cdFfKkpiUg2idScTNRsYqu5eshbWB7WrEqXCaMmJNY5GxU/exec", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ action: "register", name, nowa, reg })
-      })
-      .then(res => res.json())
-      .then(res => {
-        alert("Registrasi berhasil!");
-        document.getElementById("name").value = "";
-        document.getElementById("nowa").value = "";
-      })
-      .catch(err => {
-        alert("Terjadi kesalahan: " + err.message);
-      });
-    }
     </script>
   </body>
 </html>
